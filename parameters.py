@@ -29,7 +29,7 @@ getInitialSoc: randomly decides vehicles initial SOC so long as minimum
 
 getAsValues: process as values for regup and reg down
 
-
+dispatches: creates identity of dispatach signals
 
 '''
 
@@ -513,3 +513,34 @@ def BatteryDegradationModel ():
     #need to double check the inputs
 
     return fltAlphaSei,fltBetaSei,fltDegradation
+
+
+
+
+def dispatches(int_run_days, int_run_hours, int_run_time_interval, fltPctDispatch):
+
+    lsRuPart = []
+    lsRdPart = []
+
+    # let's dispatch 10% of the time
+    intIntervals = int(int_run_days*int_run_hours*int_run_time_interval)
+    intDispatches = int(intIntervals*fltPctDispatch)
+
+    for ind in range(intDispatches):
+
+        intRuPart = random.randint(0,intIntervals-1)
+        while intRuPart in lsRuPart: # check if it is not in the array already
+            intRuPart = random.randint(0,intIntervals-1)
+        lsRuPart.append(intRuPart)
+
+
+        intRdPart = random.randint(0,intIntervals-1)
+        while intRdPart in lsRuPart or intRdPart in lsRdPart: # keep pulling until we don't have an interval assigned to up
+            intRdPart = random.randint(0,intIntervals-1)
+        lsRdPart.append(intRdPart)
+
+    # now make those into a binary array
+    lsRuIdentity = [1 if ind in lsRuPart else 0 for ind in range(intIntervals)]
+    lsRdIdentity = [1 if ind in lsRdPart else 0 for ind in range(intIntervals)]
+
+    return lsRuIdentity, lsRdIdentity
