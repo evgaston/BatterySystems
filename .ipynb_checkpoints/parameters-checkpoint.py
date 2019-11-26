@@ -37,7 +37,10 @@ dispatches: creates identity of dispatach signals
 import pandas as pd
 import random
 import numpy as np
+<<<<<<< HEAD
+=======
 import warnings
+>>>>>>> Velvet
 
 
 def createCarsNodes(intNumHouseNodes, intNumCommNodes, intAvgNumCarsNode, intSdNumCarsNode, \
@@ -101,7 +104,11 @@ def convertLoadData(dfLoadData,dfNodesTrips,int_run_days,int_run_hours,int_minut
     intIntervals=int(run_length/int_minutes)
 
     #clean dataframe and convert to numpty for manipulation
+<<<<<<< HEAD
+    dfLoadData = dfLoadData.dropna(axis=1,thresh=100) #pull only nonzeros columns, but all of them have like one so just set a threshhold
+=======
     dfLoadData = dfLoadData.dropna(axis=1,thresh=2) #pull only nonzeros columns, but all of them have like one so just set a threshhold
+>>>>>>> Velvet
     npLoadData=dfLoadData.to_numpy()
     run_loads=npLoadData[0:run_length,2:]    # run lenth extracted from dataset, 130+ loads included, skip timestep/day
     run_loads=run_loads.astype("float32")#I think iteration is faster in an np array?
@@ -120,6 +127,9 @@ def convertLoadData(dfLoadData,dfNodesTrips,int_run_days,int_run_hours,int_minut
         while o < (run_length-int_minutes):
             start=o
             end=o+int_minutes
+<<<<<<< HEAD
+            new_interval=np.nanmean(house_load_1min[start:end])
+=======
             with warnings.catch_warnings():  ##needed to catch exceptions for mean of 0 slices, removed too much data to exclude the columns
                 warnings.filterwarnings('error')
             try:
@@ -127,6 +137,7 @@ def convertLoadData(dfLoadData,dfNodesTrips,int_run_days,int_run_hours,int_minut
             except RuntimeWarning:
                 new_interval=0 
                 
+>>>>>>> Velvet
             arrHouseLoads[n,j]=new_interval
             o+=int_minutes
             j+=1
@@ -458,6 +469,24 @@ def getInitialSoc(arrSOCconstraint, fltBatteryCap):
     return arrSOCconstraint
 
 
+<<<<<<< HEAD
+def getAsValues(dfAsPrices,int_run_days):
+    dfAsPricesRu = dfAsPrices.loc[(dfAsPrices['ANC_REGION'] == 'AS_CAISO_EXP') \
+                                    & (dfAsPrices['ANC_TYPE'] == 'RU')].sort_values('OPR_HR').reset_index()
+    dfAsPricesRd = dfAsPrices.loc[(dfAsPrices['ANC_REGION'] == 'AS_CAISO_EXP') & \
+                                  (dfAsPrices['ANC_TYPE'] == 'RD')].sort_values('OPR_HR').reset_index()
+
+    lsRuValue = []
+    lsRdValue = []
+
+    for intHr in range(24):
+
+        # get hourly $/MW price -- convert to 15 minute kWh
+        fltUp = dfAsPricesRu['MW'].iloc[intHr]/1000
+        fltDown = dfAsPricesRd['MW'].iloc[intHr]/1000
+
+        for intInterval in range(4):
+=======
 def processAsValues(dfAsRDdamPrices,dfAsRUdamPrices,dfAsRDrtmPrices,dfAsRUrtmPrices,int_run_days):
 
     
@@ -514,10 +543,19 @@ def processAsValues(dfAsRDdamPrices,dfAsRUdamPrices,dfAsRDrtmPrices,dfAsRUrtmPri
             fltUp = dfRuHolder['MW'].iloc[intHr]/1000
             fltDown = dfRuHolder['MW'].iloc[intHr]/1000
             
+>>>>>>> Velvet
             lsRuValue.append(fltUp)
             lsRdValue.append(fltDown)
 
     # adjust for simulation run period
+<<<<<<< HEAD
+    for ind in range(int_run_days-1):
+
+        lsRdValue += lsRdValue
+        lsRuValue += lsRuValue
+
+    return lsRuValue, lsRdValue
+=======
         for ind in range(int_run_days-1):
 
             lsRdValue += lsRdValue
@@ -537,6 +575,7 @@ def processAsValues(dfAsRDdamPrices,dfAsRUdamPrices,dfAsRDrtmPrices,dfAsRUrtmPri
         
     return dfRTMru,dfRTMrd,dfDAMru,dfDAMrd, DAMrdMax,DAMruMax,RTMruMax,RTMrdMax
 
+>>>>>>> Velvet
 
 
 def BatteryDegradationModel ():
