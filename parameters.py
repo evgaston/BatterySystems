@@ -458,32 +458,85 @@ def getInitialSoc(arrSOCconstraint, fltBatteryCap):
     return arrSOCconstraint
 
 
-def getAsValues(dfAsPrices,int_run_days):
-    dfAsPricesRu = dfAsPrices.loc[(dfAsPrices['ANC_REGION'] == 'AS_CAISO_EXP') \
-                                    & (dfAsPrices['ANC_TYPE'] == 'RU')].sort_values('OPR_HR').reset_index()
-    dfAsPricesRd = dfAsPrices.loc[(dfAsPrices['ANC_REGION'] == 'AS_CAISO_EXP') & \
-                                  (dfAsPrices['ANC_TYPE'] == 'RD')].sort_values('OPR_HR').reset_index()
+def processAsValues(dfAsRDdamPrices,dfAsRUdamPrices,dfAsRDrtmPrices,dfAsRUrtmPrices,int_run_days):
 
-    lsRuValue = []
-    lsRdValue = []
-
-    for intHr in range(24):
+    
+    #Naming Dict
+    
+    dctRdDAM={}
+    dctRuDAM={}
+    
+    dctRdRTM={}
+    dctRuRTM={}  
+    
+    dfRTMru=pd.DataFrame()
+    dfRTMrd=pd.DataFrame()
+    dfDAMru=pd.DataFrame()
+    dfDAMrd=pd.DataFrame()
+    
+    #get dataframe for each day
+    for days in range(1,31):
+        lsRuValue = []
+        lsRdValue = []
+        dfRuHolder=dfAsRUdamPrices.loc[(dfAsRUdamPrices['GROUP'])==days].sort_values('OPR_HR').reset_index()
+        dfRdHolder=dfAsRDdamPrices.loc[(dfAsRDdamPrices['GROUP'])==days].sort_values('OPR_HR').reset_index()
+        
+        for intHr in range(24):
 
         # get hourly $/MW price -- convert to 15 minute kWh
-        fltUp = dfAsPricesRu['MW'].iloc[intHr]/1000
-        fltDown = dfAsPricesRd['MW'].iloc[intHr]/1000
+            fltUp = dfRuHolder['MW'].iloc[intHr]/1000
+            fltDown = dfRdHolder['MW'].iloc[intHr]/1000
 
-        for intInterval in range(4):
+            for intInterval in range(4):
+                lsRuValue.append(fltUp)
+                lsRdValue.append(fltDown)
+
+    # adjust for simulation run period
+        for ind in range(int_run_days-1):
+
+            lsRdValue += lsRdValue
+            lsRuValue += lsRuValue
+            
+        dfDAMru.insert(days-1,str(days),lsRuValue,True)
+        dfDAMrd.insert(days-1,str(days),lsRdValue,True)
+       # dctRdDAM[days]=lsRdValue
+       # dctRuDAM[days]=lsRuValue
+    
+    for days in range(1,31):
+        lsRuValue = []
+        lsRdValue = []
+        dfRuHolder=dfAsRUrtmPrices.loc[(dfAsRUrtmPrices['GROUP'])==days].sort_values('OPR_TM').reset_index()
+        dfRdHolder=dfAsRDrtmPrices.loc[(dfAsRDrtmPrices['GROUP'])==days].sort_values('OPR_TM').reset_index()
+        
+        for intHr in range(96):
+
+        # get hourly $/MW price -- convert to 15 minute kWh
+            fltUp = dfRuHolder['MW'].iloc[intHr]/1000
+            fltDown = dfRuHolder['MW'].iloc[intHr]/1000
+            
             lsRuValue.append(fltUp)
             lsRdValue.append(fltDown)
 
     # adjust for simulation run period
-    for ind in range(int_run_days-1):
+        for ind in range(int_run_days-1):
 
-        lsRdValue += lsRdValue
-        lsRuValue += lsRuValue
+            lsRdValue += lsRdValue
+            lsRuValue += lsRuValue
+            
+        dfRTMru.insert(days-1,str(days),lsRuValue,True)
+        dfRTMrd.insert(days-1,str(days),lsRdValue,True)    
+        
+    RTMruseries=dfRTMru.sum()
+    RTMruMax=dfRTMru.iloc[:,int(RTMruseries.idxmax())-1].values.tolist()  
+    RTMrdseries=dfRTMrd.sum()
+    RTMrdMax=dfRTMrd.iloc[:,int(RTMrdseries.idxmax())-1].values.tolist()    
+    DAMruseries=dfDAMru.sum()
+    DAMruMax=dfDAMru.iloc[:,int(DAMruseries.idxmax())-1].values.tolist()    
+    DAMrdseries=dfDAMrd.sum()
+    DAMrdMax=dfDAMrd.iloc[:,int(DAMrdseries.idxmax())-1].values.tolist() 
+        
+    return dfRTMru,dfRTMrd,dfDAMru,dfDAMrd, DAMrdMax,DAMruMax,RTMruMax,RTMrdMax
 
-    return lsRuValue, lsRdValue
 
 
 def BatteryDegradationModel ():
