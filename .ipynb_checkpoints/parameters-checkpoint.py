@@ -464,8 +464,7 @@ def processAsValues(dfAsRDdamPrices,dfAsRUdamPrices,dfAsRDrtmPrices,dfAsRUrtmPri
     
     #Naming Dict
     
-    dctASallprices={}
-    
+
     dfRTMru=pd.DataFrame()
     dfRTMrd=pd.DataFrame()
     dfDAMru=pd.DataFrame()
@@ -533,11 +532,9 @@ def processAsValues(dfAsRDdamPrices,dfAsRUdamPrices,dfAsRDrtmPrices,dfAsRUrtmPri
     
     lsNetru=np.array(RTMruMax)-np.array(lsDAMruMax)
     lsNetrd=np.array(RTMrdMax)-np.array(lsDAMrdMax)
+   
+    dctASallprices={'lalala':dfRTMru,"RTMrd":dfRTMrd,"DAMru":dfDAMru,"DAMrd":dfDAMrd}
     
-    dctASallprices[RTMru]=dfRTMru
-    dctASallprices[RTMrd]=dfRTMrd
-    dctASallprices[DAMru]=dfDAMru
-    dctASallprices[DAMrd]=dfDAMrd
         
     return dctASallprices,lsDAMrdMax,lsDAMruMax,lsNetru,lsNetrd
 
@@ -608,3 +605,37 @@ def dispatches(int_run_days, int_run_hours, int_run_time_interval, fltPctDispatc
     lsRdIdentity = [1 if ind in lsRdPart else 0 for ind in range(intIntervals)]
 
     return lsRuIdentity, lsRdIdentity
+
+def BatteryDegradationModel ():
+
+    # battery constants
+    fltAlphaSei = 5.75 * 10**-2
+    fltBetaSei = 121
+    fltKdelta1 = 1.40 * 10**5
+    fltKdelta2 = -5.01 * 10**-1
+    fltKdelta3= 1.23*10**5
+    fltKsigma = 1.04
+    fltSigmaRef = 0.5
+    #fltKtime = 4.14* 10**-10 # 1/s
+    #fltKtemp = 6.93 * 10**-2
+    #fltTref = 25 
+    fltCost = 7000 # cost of Tesla battery replacement
+
+    #fltTemp=25
+    #fltDepthofDischarge=0.6
+    #fltStateofCharge=0.5
+    #fltTime=3600*int_run_hours # time in seconds
+
+
+    #fltStressTemp=math.exp(fltKtemp*(fltTemp-fltTref))*fltTref/fltTemp
+    #fltStressSOC=math.exp(fltKsigma*(fltStateofCharge-fltSigmaRef))
+    #fltStressTime=fltKtime*fltTime  #not clear what t is supposed to be 
+    #fltStressDischarge=(fltKdelta1*fltDepthofDischarge**fltKdelta2+fltKdelta3)**(-1)
+
+    #fltDegradation=(fltStressDischarge)*fltStressSOC*fltStressTemp
+
+    #varBatteryLife=fltAlphaSei*math.exp((-varNumberOfCycles*fltBetaSei*fltDegradation))+(1-fltAlphaSei)*math.exp((-varNumberOfCycles*fltDegradation))
+    #need to double check the inputs
+
+        
+    return fltAlphaSei,fltBetaSei,fltKdelta1,fltKdelta2,fltKdelta3,fltKsigma,fltSigmaRef,fltCost
