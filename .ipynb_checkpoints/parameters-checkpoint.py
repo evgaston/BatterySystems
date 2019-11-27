@@ -464,11 +464,7 @@ def processAsValues(dfAsRDdamPrices,dfAsRUdamPrices,dfAsRDrtmPrices,dfAsRUrtmPri
     
     #Naming Dict
     
-    dctRdDAM={}
-    dctRuDAM={}
-    
-    dctRdRTM={}
-    dctRuRTM={}  
+    dctASallprices={}
     
     dfRTMru=pd.DataFrame()
     dfRTMrd=pd.DataFrame()
@@ -531,11 +527,19 @@ def processAsValues(dfAsRDdamPrices,dfAsRUdamPrices,dfAsRDrtmPrices,dfAsRUrtmPri
     RTMrdseries=dfRTMrd.sum()
     RTMrdMax=dfRTMrd.iloc[:,int(RTMrdseries.idxmax())-1].values.tolist()    
     DAMruseries=dfDAMru.sum()
-    DAMruMax=dfDAMru.iloc[:,int(DAMruseries.idxmax())-1].values.tolist()    
+    lsDAMruMax=dfDAMru.iloc[:,int(DAMruseries.idxmax())-1].values.tolist()    
     DAMrdseries=dfDAMrd.sum()
-    DAMrdMax=dfDAMrd.iloc[:,int(DAMrdseries.idxmax())-1].values.tolist() 
+    lsDAMrdMax=dfDAMrd.iloc[:,int(DAMrdseries.idxmax())-1].values.tolist() 
+    
+    lsNetru=np.array(RTMruMax)-np.array(lsDAMruMax)
+    lsNetrd=np.array(RTMrdMax)-np.array(lsDAMrdMax)
+    
+    dctASallprices[RTMru]=dfRTMru
+    dctASallprices[RTMrd]=dfRTMrd
+    dctASallprices[DAMru]=dfDAMru
+    dctASallprices[DAMrd]=dfDAMrd
         
-    return dfRTMru,dfRTMrd,dfDAMru,dfDAMrd, DAMrdMax,DAMruMax,RTMruMax,RTMrdMax
+    return dctASallprices,lsDAMrdMax,lsDAMruMax,lsNetru,lsNetrd
 
 
 
