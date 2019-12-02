@@ -137,8 +137,8 @@ def make_dispatch_objectives(constraints, varRegDown,varRegUp,varCharge,varDegra
     
     obj_value = cvx.sum(lsDAMrdMax*cvx.sum(varRegDown,axis=0)) + \
                 cvx.sum(lsDAMruMax*cvx.sum(varRegUp,axis=0)) + \
-                cvx.sum(lsNetrd*cvx.sum(varRegDown,axis=0)*lsRdIdentity*fltDt/15)+\
-                cvx.sum(lsNetru*cvx.sum(varRegUp,axis=0)*lsRuIdentity*fltDt/15)- \
+                cvx.sum(lsNetrd*cvx.sum(varRegDown,axis=0)*lsRdIdentity/15)+\
+                cvx.sum(lsNetru*cvx.sum(varRegUp,axis=0)*lsRuIdentity/15)- \
                 cvx.sum(lsCostElectric*cvx.sum(varCharge,axis=0)*fltDt) - \
                 cvx.sum(varDegradationCost) -\
                     cvx.sum(lsCostElectric*cvx.sum(varRegDown,axis=0)*lsRdIdentity*fltDt/15)
@@ -339,8 +339,8 @@ def make_battery_objectives(constraints, varRegDown,varRegUp,varCharge,varDegrad
         
     obj_value = cvx.sum(lsDAMrdMax*cvx.sum(varRegDown,axis=0)) + \
                 cvx.sum(lsDAMruMax*cvx.sum(varRegUp,axis=0)) - \
-                cvx.sum(lsNetrd*cvx.sum(varRegDown,axis=0)*lsRdIdentity*fltDt/15)+\
-                cvx.sum(lsNetru*cvx.sum(varRegUp,axis=0)*lsRuIdentity*fltDt/15)- \
+                cvx.sum(lsNetrd*cvx.sum(varRegDown,axis=0)*lsRdIdentity/15)+\
+                cvx.sum(lsNetru*cvx.sum(varRegUp,axis=0)*lsRuIdentity/15)- \
                 cvx.sum(lsCostElectric*cvx.sum(varCharge,axis=0)*fltDt) - \
                 cvx.sum(lsCostElectric*cvx.sum(varRegDown,axis=0)*lsRdIdentity*fltDt/15) -\
                 cvx.sum(varDegradationCost)
