@@ -126,7 +126,7 @@ def make_dispatch_constraints(arrSOCconstraint, arrChargeRate, arrCanCharge,dctN
      
         constraints+= [varBatteryLife[v] == (6.015*(.000017*varNumberOfCycles[v]))]
         
-        constraints+= [varDegradationCost[v] >= 7000*varBatteryLife[v]/0.2]
+        constraints+= [varDegradationCost[v] == 7000*varBatteryLife[v]/0.2]
        
    
     return constraints, varRegDown,varRegUp,varCharge,varNumberOfCycles, varDegradationCost
@@ -137,8 +137,8 @@ def make_dispatch_objectives(constraints, varRegDown,varRegUp,varCharge,varDegra
     
     obj_value = cvx.sum(lsDAMrdMax*cvx.sum(varRegDown,axis=0)) + \
                 cvx.sum(lsDAMruMax*cvx.sum(varRegUp,axis=0)) + \
-                cvx.sum(cvx.pos(lsNetrd)*cvx.sum(varRegDown,axis=0)*lsRdIdentity*fltDt/15)+\
-                cvx.sum(cvx.pos(lsNetru)*cvx.sum(varRegUp,axis=0)*lsRuIdentity*fltDt/15)- \
+                cvx.sum(lsNetrd*cvx.sum(varRegDown,axis=0)*lsRdIdentity*fltDt/15)+\
+                cvx.sum(lsNetru*cvx.sum(varRegUp,axis=0)*lsRuIdentity*fltDt/15)- \
                 cvx.sum(lsCostElectric*cvx.sum(varCharge,axis=0)*fltDt) - \
                 cvx.sum(varDegradationCost) -\
                     cvx.sum(lsCostElectric*cvx.sum(varRegDown,axis=0)*lsRdIdentity*fltDt/15)
@@ -146,7 +146,7 @@ def make_dispatch_objectives(constraints, varRegDown,varRegUp,varCharge,varDegra
     return obj_value, varRegUp, varRegDown,varCharge
 
 def make_tou_constraints(arrSOCconstraint, arrChargeRate, arrCanCharge,\
-                     fltDt, fltBatteryCap, arrConsumptionFinal, PeakLoads,intTotalNodes, dfNetNodeLoad):
+                     fltDt, fltBatteryCap, arrConsumptionFinal, PeakLoads,intTotalNodes, dfNetNodeLoad,lsNodes,dctNodeIdentity):
     
 
     intVehicles = np.shape(arrSOCconstraint)[0]
@@ -157,6 +157,7 @@ def make_tou_constraints(arrSOCconstraint, arrChargeRate, arrCanCharge,\
     # no need for discharge variable
     varSOCs = cvx.Variable((intVehicles,intTimes)) # SOCs of the vehicles
     varNodeSum = cvx.Variable((intTotalNodes, intTimes))
+    
     
     # initialzie constraints
     constraints = []
@@ -189,22 +190,22 @@ def make_tou_constraints(arrSOCconstraint, arrChargeRate, arrCanCharge,\
             
             constraints += [varSOCs[v,t]  == varSOCs[v,t-1] + varCharge[v,t]*fltDt + arrConsumptionFinal[v,t]*fltDt]
     
-    for n, node in enumerate(lsNodes):
+        for n, node in enumerate(lsNodes):
         
         # find the transformer size 
-        TransformerMax=PeakLoads[node]*1.5  #max is 20% above max load
+            TransformerMax = PeakLoads[node]*1.5  # max is 20% above max load
         # load has to be less than that 
-        constraints+= [varNodeSum[n,:] <= TransformerMax]
+            constraints += [varNodeSum[n,:] <= TransformerMax]
         
-        # gather node identigies 
-        arrNodeIdentities= dctNodeIdentity[node]
-        for t in range (intTimes):
-            constraints+= [varNodeSum[n,t] == cvx.sum(arrNodeIdentities[:,t]*varCharge[:,t]) + dfNetNodeLoad[node].iloc[t]]
+        # gather node identities 
+            arrNodeIdentities= dctNodeIdentity[node]
+            for t in range (intTimes):
+                constraints+= [varNodeSum[n,t] == cvx.sum(arrNodeIdentities[:,t] * varCharge[:,t] + dfNetNodeLoad[node].iloc[t])]
         
     
     return constraints, varCharge, varSOCs
 
-def make_tou_objectives(constraints, varCharge,arrSOCconstraint,fltDt,lsCostElectric,arrConsumptionFinal):
+def make_tou_objectives(constraints, varCharge,arrSOCconstraint,fltDt,fltBatteryCap,lsCostElectric,arrConsumptionFinal):
     
     
     intVehicles = np.shape(arrSOCconstraint)[0]
@@ -212,6 +213,7 @@ def make_tou_objectives(constraints, varCharge,arrSOCconstraint,fltDt,lsCostElec
     
     varCostToCharge = cvx.Variable(intTimes) # payments to charge vehicle
     varNumberOfCycles = cvx.Variable(intVehicles)
+    varBatteryLife = cvx.Variable(intVehicles)
     varDegradationCost = cvx.Variable(intVehicles)
     
     constraints += [varDegradationCost >= 0] #positively constrained 
@@ -219,7 +221,9 @@ def make_tou_objectives(constraints, varCharge,arrSOCconstraint,fltDt,lsCostElec
     
     for v in range(intVehicles):
         constraints+= [varNumberOfCycles[v] == (cvx.sum(varCharge[v,:])-np.sum(arrConsumptionFinal[v,:]))*fltDt/fltBatteryCap]
-        constraints+= [varDegradationCost[v] == 4.66*varNumberOfCycles[v]]
+        constraints+= [varBatteryLife[v] == (6.015*(.000017*varNumberOfCycles[v]))]
+        
+        constraints+= [varDegradationCost[v] == 7000*varBatteryLife[v]/0.2]
      
     for t in range(intTimes):
         
@@ -227,11 +231,11 @@ def make_tou_objectives(constraints, varCharge,arrSOCconstraint,fltDt,lsCostElec
 
     obj_value = cvx.sum(varCostToCharge) + cvx.sum(varDegradationCost)
     
-    return constraints, obj_value
+    return constraints, obj_value, varCharge,varNumberOfCycles, varDegradationCost
 
-def make_battery_constraints(arrSOCconstraint, arrChargeRate, dctResIdentity,lsResNodes, \
-                     PeakLoads,intTotalNodes,dfNetNodeLoad,\
-                     fltBatteryCap,fltDt,lsCostElectric,lsRdValueMax,lsRuValueMax,\
+def make_battery_constraints(arrSOCconstraint, arrChargeRate, arrCanCharge,dctResIdentity,lsResNodes, \
+                     arrConsumptionFinal,PeakLoads,intTotalNodes,dfNetNodeLoad,\
+                     fltBatteryCap,fltDt,lsCostElectric,lDAMrdMax,DAMruMax,\
                      lsRuIdentity, lsRdIdentity, fltWorkRate):
     
     intVehicles = np.shape(arrSOCconstraint)[0]
@@ -314,14 +318,6 @@ def make_battery_constraints(arrSOCconstraint, arrChargeRate, dctResIdentity,lsR
     for v in range(intVehicles):
         
         # set up number of cycles based on the sum of all charge & discharge including reg up and down 
-        constraints+= [varNumberOfCycles[v] >= ((cvx.sum(varCharge[v,:]) - cvx.sum(varDischarge[v,:]) \
-                                                + cvx.sum(varRegDown[v,:]*lsRdIdentity) \
-                                            + cvx.sum(varRegUp[v,:]*lsRuIdentity)))*fltDt/fltBatteryCap]
-        
-        #simplified linear degradation value 
-        constraints+= [varDegradationCost[v] >= 4.66*varNumberOfCycles[v]]
-        
-    for v in range(intVehicles):
         
         # set up number of cycles based on the sum of all charge & discharge including reg up and down 
         constraints+= [varNumberOfCycles[v] >= ((cvx.sum(varCharge[v,:]) - cvx.sum(varDischarge[v,:]))*fltDt \
@@ -331,18 +327,20 @@ def make_battery_constraints(arrSOCconstraint, arrChargeRate, dctResIdentity,lsR
      
         constraints+= [varBatteryLife[v] == (6.015*(.000017*varNumberOfCycles[v]))]
         
-        constraints+= [varDegradationCost[v] >= 7000*varBatteryLife[v]/0.2]
+        constraints+= [varDegradationCost[v] == 7000*varBatteryLife[v]/0.2]
        
              
    
-    return constraints, varRegDown,varRegUp,varCharge,varDegradationCost
+    return constraints, varRegDown,varRegUp,varCharge,varNumberOfCycles, varDegradationCost
 
 def make_battery_objectives(constraints, varRegDown,varRegUp,varCharge,varDegradationCost,\
-                    lsCostElectric,lsRdValueMax,lsRuValueMax):
+                    lsCostElectric,lsRdIdentity, lsRuIdentity,lsDAMrdMax,lsDAMruMax,lsNetru,lsNetrd,fltDt):
     
         
-    obj_value = cvx.sum(lsRdValueMax*cvx.sum(varRegDown,axis=0)) + \
-                cvx.sum(lsRuValueMax*cvx.sum(varRegUp,axis=0)) - \
+    obj_value = cvx.sum(lsDAMrdMax*cvx.sum(varRegDown,axis=0)) + \
+                cvx.sum(lsDAMruMax*cvx.sum(varRegUp,axis=0)) - \
+                cvx.sum(lsNetrd*cvx.sum(varRegDown,axis=0)*lsRdIdentity*fltDt/15)+\
+                cvx.sum(lsNetru*cvx.sum(varRegUp,axis=0)*lsRuIdentity*fltDt/15)- \
                 cvx.sum(lsCostElectric*cvx.sum(varCharge,axis=0)*fltDt) - \
                 cvx.sum(lsCostElectric*cvx.sum(varRegDown,axis=0)*lsRdIdentity*fltDt/15) -\
                 cvx.sum(varDegradationCost)
