@@ -25,7 +25,7 @@ import math
 
 def make_dispatch_constraints(arrSOCconstraint, arrChargeRate, arrCanCharge,dctNodeIdentity,lsNodes, \
                      arrConsumptionFinal,PeakLoads,intTotalNodes,dfNetNodeLoad,\
-                     fltBatteryCap,fltDt,lsCostElectric,lDAMrdMax,DAMruMax,\
+                     fltBatteryCap,fltDt,lsCostElectric,\
                      lsRuIdentity, lsRdIdentity):
     
     intVehicles = np.shape(arrSOCconstraint)[0]
@@ -143,7 +143,7 @@ def make_dispatch_objectives(constraints, varRegDown,varRegUp,varCharge,varDegra
                 cvx.sum(varDegradationCost) -\
                     cvx.sum(lsCostElectric*cvx.sum(varRegDown,axis=0)*lsRdIdentity*fltDt/15)
     
-    return obj_value, varRegUp, varRegDown,varCharge
+    return constraints, obj_value, varRegUp, varRegDown,varCharge, varDegradationCost
 
 def make_tou_constraints(arrSOCconstraint, arrChargeRate, arrCanCharge,\
                      fltDt, fltBatteryCap, arrConsumptionFinal, PeakLoads,intTotalNodes, dfNetNodeLoad,lsNodes,dctNodeIdentity):
@@ -235,7 +235,7 @@ def make_tou_objectives(constraints, varCharge,arrSOCconstraint,fltDt,fltBattery
 
 def make_battery_constraints(arrSOCconstraint, arrChargeRate, arrCanCharge,dctResIdentity,lsResNodes, \
                      arrConsumptionFinal,PeakLoads,intTotalNodes,dfNetNodeLoad,\
-                     fltBatteryCap,fltDt,lsCostElectric,lDAMrdMax,DAMruMax,\
+                     fltBatteryCap,fltDt,lsCostElectric,\
                      lsRuIdentity, lsRdIdentity, fltWorkRate):
     
     intVehicles = np.shape(arrSOCconstraint)[0]
@@ -345,4 +345,4 @@ def make_battery_objectives(constraints, varRegDown,varRegUp,varCharge,varDegrad
                 cvx.sum(lsCostElectric*cvx.sum(varRegDown,axis=0)*lsRdIdentity*fltDt/15) -\
                 cvx.sum(varDegradationCost)
     
-    return obj_value, varRegUp, varRegDown,varCharge
+    return constraints, obj_value, varRegUp, varRegDown,varCharge, varDegradationCost

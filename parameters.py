@@ -341,7 +341,6 @@ def findVehicleConsumption(dfNodesTrips, dfTripData, fltCarEff, fltDt, int_run_d
         # get a list of locations
         lsLocations = dfTripData.loc[dfTripData['ID'] == strId].values.flatten()[3:-1].tolist()
 
-        # so that we can find how many intervals we are away
         intAway = sum(1 if strLoc == "A" else 0 for strLoc in lsLocations)
 
         # miles per interval of travel and kwh per interval
@@ -534,6 +533,8 @@ def processAsValues(dfAsRDdamPrices,dfAsRUdamPrices,dfAsRDrtmPrices,dfAsRUrtmPri
     lsNetru[lsNetru<0]=0
     lsNetrd=np.array(RTMrdMax)-np.array(lsDAMrdMax)
     lsNetrd[lsNetrd<0]=0
+    
+    
    
     dctASallprices={'RTMru':dfRTMru,"RTMrd":dfRTMrd,"DAMru":dfDAMru,"DAMrd":dfDAMrd}
       
