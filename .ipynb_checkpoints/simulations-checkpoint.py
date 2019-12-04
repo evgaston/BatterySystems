@@ -91,6 +91,8 @@ def make_dispatch_constraints(arrSOCconstraint, arrChargeRate, arrCanCharge,dctN
            
         # must end at the same SOC it started at 
         constraints += [varSOCs[v,0] == varSOCs[v,-1]]
+        #has to initialize, option to pass ending values
+        #onstraints += [varSOCs[v,0]== varInit[v]]
             
         # SOC function  
         for t in range(1,intTimes): # loop through from time 1 to end to set SOC, 
@@ -129,7 +131,7 @@ def make_dispatch_constraints(arrSOCconstraint, arrChargeRate, arrCanCharge,dctN
         constraints+= [varDegradationCost[v] == 7000*varBatteryLife[v]/0.2]
        
    
-    return constraints, varRegDown,varRegUp,varCharge,varNumberOfCycles, varDegradationCost
+    return constraints, varRegDown,varRegUp,varCharge,varNumberOfCycles, varDegradationCost, varSOCs
 
 def make_dispatch_objectives(constraints, varRegDown,varRegUp,varCharge,varDegradationCost,\
                     lsCostElectric,lsRdIdentity, lsRuIdentity,lsDAMrdMax,lsDAMruMax,lsNetru,lsNetrd,fltDt):
@@ -139,7 +141,7 @@ def make_dispatch_objectives(constraints, varRegDown,varRegUp,varCharge,varDegra
                 cvx.sum(lsDAMruMax*cvx.sum(varRegUp,axis=0)) + \
                 cvx.sum(lsNetrd*cvx.sum(varRegDown,axis=0)*lsRdIdentity/15)+\
                 cvx.sum(lsNetru*cvx.sum(varRegUp,axis=0)*lsRuIdentity/15)- \
-                cvx.sum(lsCostElectric*cvx.sum(varCharge,axis=0)*fltDt) - \
+                cvx.sum(cvx.multiply(lsCostElectric,cvx.sum(varCharge,axis=0))*fltDt) - \
                 cvx.sum(varDegradationCost) -\
                     cvx.sum(lsCostElectric*cvx.sum(varRegDown,axis=0)*lsRdIdentity*fltDt/15)
     
@@ -205,7 +207,7 @@ def make_tou_constraints(arrSOCconstraint, arrChargeRate, arrCanCharge,\
     
     return constraints, varCharge, varSOCs
 
-def make_tou_objectives(constraints, varCharge,arrSOCconstraint,fltDt,fltBatteryCap,lsCostElectric,arrConsumptionFinal):
+def make_tou_objectives(constraints, varSOCs,varCharge,arrSOCconstraint,fltDt,fltBatteryCap,lsCostElectric,arrConsumptionFinal):
     
     
     intVehicles = np.shape(arrSOCconstraint)[0]

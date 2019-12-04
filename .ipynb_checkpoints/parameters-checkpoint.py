@@ -341,7 +341,6 @@ def findVehicleConsumption(dfNodesTrips, dfTripData, fltCarEff, fltDt, int_run_d
         # get a list of locations
         lsLocations = dfTripData.loc[dfTripData['ID'] == strId].values.flatten()[3:-1].tolist()
 
-        # so that we can find how many intervals we are away
         intAway = sum(1 if strLoc == "A" else 0 for strLoc in lsLocations)
 
         # miles per interval of travel and kwh per interval
@@ -472,7 +471,9 @@ def processAsValues(dfAsRDdamPrices,dfAsRUdamPrices,dfAsRDrtmPrices,dfAsRUrtmPri
     #get dataframe for each day
     for days in range(1,31):
         lsRuValue = []
+        lsRuHolder=[]
         lsRdValue = []
+        lsRdHolder=[]
         dfRuHolder=dfAsRUdamPrices.loc[(dfAsRUdamPrices['GROUP'])==days].sort_values('OPR_HR').reset_index()
         dfRdHolder=dfAsRDdamPrices.loc[(dfAsRDdamPrices['GROUP'])==days].sort_values('OPR_HR').reset_index()
         
@@ -487,19 +488,21 @@ def processAsValues(dfAsRDdamPrices,dfAsRUdamPrices,dfAsRDrtmPrices,dfAsRUrtmPri
                 lsRdValue.append(fltDown)
 
     # adjust for simulation run period
-        for ind in range(int_run_days-1):
+        for ind in range(int_run_days):
 
-            lsRdValue += lsRdValue
-            lsRuValue += lsRuValue
+            lsRdHolder+=lsRdValue
+            lsRuHolder+=lsRuValue
             
-        dfDAMru.insert(days-1,str(days),lsRuValue,True)
-        dfDAMrd.insert(days-1,str(days),lsRdValue,True)
+        dfDAMru.insert(days-1,str(days),lsRuHolder,True)
+        dfDAMrd.insert(days-1,str(days),lsRdHolder,True)
        # dctRdDAM[days]=lsRdValue
        # dctRuDAM[days]=lsRuValue
     
     for days in range(1,31):
         lsRuValue = []
+        lsRuHolder=[]
         lsRdValue = []
+        lsRdHolder=[]
         dfRuHolder=dfAsRUrtmPrices.loc[(dfAsRUrtmPrices['GROUP'])==days].sort_values('OPR_TM').reset_index()
         dfRdHolder=dfAsRDrtmPrices.loc[(dfAsRDrtmPrices['GROUP'])==days].sort_values('OPR_TM').reset_index()
         
@@ -512,13 +515,13 @@ def processAsValues(dfAsRDdamPrices,dfAsRUdamPrices,dfAsRDrtmPrices,dfAsRUrtmPri
             lsRuValue.append(fltUp)
             lsRdValue.append(fltDown)
 
-        for ind in range(int_run_days-1):
+        for ind in range(int_run_days):
 
-            lsRdValue += lsRdValue
-            lsRuValue += lsRuValue
+            lsRdHolder+=lsRdValue
+            lsRuHolder+=lsRuValue
             
-        dfRTMru.insert(days-1,str(days),lsRuValue,True)
-        dfRTMrd.insert(days-1,str(days),lsRdValue,True)    
+        dfRTMru.insert(days-1,str(days),lsRuHolder,True)
+        dfRTMrd.insert(days-1,str(days),lsRdHolder,True)    
         
     RTMruseries=dfRTMru.sum()
     RTMruMax=dfRTMru.iloc[:,int(RTMruseries.idxmax())-1].values.tolist()  
@@ -534,6 +537,8 @@ def processAsValues(dfAsRDdamPrices,dfAsRUdamPrices,dfAsRDrtmPrices,dfAsRUrtmPri
     lsNetru[lsNetru<0]=0
     lsNetrd=np.array(RTMrdMax)-np.array(lsDAMrdMax)
     lsNetrd[lsNetrd<0]=0
+    
+    
    
     dctASallprices={'RTMru':dfRTMru,"RTMrd":dfRTMrd,"DAMru":dfDAMru,"DAMrd":dfDAMrd}
       
