@@ -2,14 +2,9 @@
 Module to simplify optimization simulations 
 Battery Systems, Final Project
 Michaela, Velvet, Michelle
-
 make_dispatch_constraints & _objective: calculates an optimization with a varying amount of dispatch, DAM money is received for capacity available and RTM value is received for dispatch if greater than DAM. 
-
 make_tou_constraints & objective: calculates an optimization to minimize TOU cost for vehicle charging. This is a no services scenario, "every day behavior" of an ev
-
 make_battery_constraints & objective: calculates the optimization as if the vehicle is a stationary battery providing services 100% of the time. 
-
-
 '''
 
 

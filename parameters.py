@@ -2,35 +2,22 @@
 Module to initialize simulation of EV network
 Battery Systems, Final Project
 Michaela, Velvet, Michelle
-
 This module constrains the following functions:
-
 createCarsNodes: creates of dataframe of trip Ids and the node id of their home
                  and workplace as well as the number of houses.
-
 convertLoadData: processes load data from 1 minute to 15 minute basis and assoc.
                  it with nodes and vehciles.
-
 SolarGenData: Processes solar data to different capacities
-
 MapCarNodesTime: Finds the charge rate of the vehicles at each time, whether it
                  can charge, where it can charge, and it's home station
-
 netLoadChargeLoc: find the net kw at each charge pt location
-
 findVehicleConsumption: calculates consumption from battery from driving pattern
-
 getSOCconstraints: find minimum SOC requirement to serve driving needs
-
 getChargeRateConstraings: finds the maximum charging rate at each time interval
-
 getInitialSoc: randomly decides vehicles initial SOC so long as minimum
                requirement is met
-
 getAsValues: process as values for regup and reg down
-
 dispatches: creates identity of dispatach signals
-
 '''
 
 # import
